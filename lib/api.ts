@@ -5,9 +5,16 @@ const API_URL = 'https://notehub-public.goit.study/api';
 
 const api = axios.create({
   baseURL: API_URL,
-  headers: {
-    Authorization: `Bearer ${process.env.NEXT_PUBLIC_NOTEHUB_TOKEN}`,
-  },
+});
+
+
+api.interceptors.request.use((config) => {
+  const token = process.env.NEXT_PUBLIC_NOTEHUB_TOKEN;
+  
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
 });
 
 export interface FetchNotesResponse {
@@ -38,7 +45,12 @@ export interface DeleteNoteResponse {
 }
 
 export const fetchNotes = async (params: FetchNotesParams): Promise<FetchNotesResponse> => {
-  const { data } = await api.get<FetchNotesResponse>('/notes', { params });
+
+  const cleanParams = Object.fromEntries(
+    Object.entries(params).filter(([_, value]) => value !== undefined && value !== '')
+  );
+
+  const { data } = await api.get<FetchNotesResponse>('/notes', { params: cleanParams });
   return data;
 };
 
